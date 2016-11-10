@@ -34,7 +34,7 @@ func (controller *BuoyController) Index() {
 
 	controller.Data["Stations"] = buoyStations
 	controller.Layout = "shared/basic-layout.html"
-	controller.TplNames = "buoy/content.html"
+	controller.TplName = "buoy/content.html"
 	controller.LayoutSections = map[string]string{}
 	controller.LayoutSections["PageHead"] = "buoy/page-head.html"
 	controller.LayoutSections["Header"] = "shared/header.html"
@@ -62,7 +62,7 @@ func (controller *BuoyController) RetrieveStation() {
 
 	controller.Data["Station"] = buoyStation
 	controller.Layout = ""
-	controller.TplNames = "buoy/modal/pv_station-detail.html"
+	controller.TplName = "buoy/modal/pv_station-detail.html"
 	view, _ := controller.RenderString()
 
 	controller.AjaxResponse(0, "SUCCESS", view)
@@ -88,5 +88,5 @@ func (controller *BuoyController) RetrieveStationJSON() {
 	}
 
 	controller.Data["json"] = buoyStation
-	controller.ServeJson()
+	controller.ServeJSON()
 }

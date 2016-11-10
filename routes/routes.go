@@ -12,6 +12,16 @@ import (
 
 func init() {
 	beego.Router("/", new(controllers.BuoyController), "get:Index")
+
+	beego.Router("/users", new(controllers.UserController), "get:Index")
+	beego.Router("/users/retrieveuser", new(controllers.UserController), "post:RetrieveUser")
+
+	beego.Router("/requests", new(controllers.RequestController), "get:Index")
+	beego.Router("/requests/:userId", new(controllers.RequestController), "get:RequestsForUser")
+	beego.Router("/requests/createnew", new(controllers.RequestController), "post:CreateRequest")
+
+	beego.Router("/react", new(controllers.ReactController), "get:Index")
+
 	beego.Router("/buoy/retrievestation", new(controllers.BuoyController), "post:RetrieveStation")
 	beego.Router("/buoy/station/:stationId", new(controllers.BuoyController), "get,post:RetrieveStationJSON")
 }

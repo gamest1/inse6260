@@ -33,7 +33,7 @@ type (
 
 // init initializes all required packages and systems
 func init() {
-	log.Start(log.LEVEL_TRACE)
+	log.Start(log.LevelTrace)
 
 	// Init mongo
 	log.Started("main", "Initializing Mongo")

@@ -26,6 +26,7 @@ type (
 
 // Prepare is called before any controller.
 func (service *Service) Prepare() (err error) {
+	log.Trace(service.UserID, "Prepare", "Copying Mongo Session at services")
 	service.MongoSession, err = mongo.CopyMonotonicSession(service.UserID)
 	if err != nil {
 		log.Error(err, service.UserID, "Service.Prepare")
@@ -37,9 +38,11 @@ func (service *Service) Prepare() (err error) {
 
 // Finish is called after the controller.
 func (service *Service) Finish() (err error) {
+	log.Trace(service.UserID, "Finish", "Service finishing!!")
 	defer helper.CatchPanic(&err, service.UserID, "Service.Finish")
 
 	if service.MongoSession != nil {
+		log.Trace(service.UserID, "Finish", "Closing Session from services")
 		mongo.CloseSession(service.UserID, service.MongoSession)
 		service.MongoSession = nil
 	}

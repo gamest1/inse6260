@@ -23,6 +23,9 @@ const (
 
 	// MonotonicSession provides reads to slaves.
 	MonotonicSession = "monotonic"
+
+	// PermanentSession provides access to master database and session doesn't timeout!
+	MasterPermanentSession = "permanent"
 )
 
 var (
@@ -33,10 +36,12 @@ var (
 type (
 	// mongoConfiguration contains settings for initialization.
 	mongoConfiguration struct {
-		Hosts    string
-		Database string
-		UserName string
-		Password string
+		Hosts    				string
+		Database 				string
+		Watchdb  				string
+		WatchCollection string
+		UserName 				string
+		Password 				string
 	}
 
 	// mongoManager contains dial and session information.
@@ -95,6 +100,12 @@ func Startup(sessionID string) error {
 		return err
 	}
 
+	// Create the permanent session.
+	if err := CreateSession(sessionID, "strong", MasterPermanentSession, hosts, config.Watchdb, "", ""); err != nil {
+		log.CompletedError(err, sessionID, "Startup")
+		return err
+	}
+
 	log.Completed(sessionID, "Startup")
 	return nil
 }
@@ -105,6 +116,7 @@ func Shutdown(sessionID string) error {
 
 	// Close the databases
 	for _, session := range singleton.sessions {
+		log.Trace(sessionID, "Shutdown", "Closing All Sessions from mongo")
 		CloseSession(sessionID, session.mongoSession)
 	}
 
@@ -172,6 +184,11 @@ func CopyMasterSession(sessionID string) (*mgo.Session, error) {
 // CopyMonotonicSession makes a copy of the monotonic session for client use.
 func CopyMonotonicSession(sessionID string) (*mgo.Session, error) {
 	return CopySession(sessionID, MonotonicSession)
+}
+
+// CopyPermanentSession makes a copy of the master permanent session for client use.
+func CopyPermanentSession(sessionID string) (*mgo.Session, error) {
+	return CopySession(sessionID, MasterPermanentSession)
 }
 
 // CopySession makes a copy of the specified session for client use.

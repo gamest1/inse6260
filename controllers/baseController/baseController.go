@@ -8,7 +8,6 @@ package baseController
 import (
 	"reflect"
 	"runtime"
-
 	"fmt"
 
 	"github.com/astaxie/beego"
@@ -54,6 +53,7 @@ func (baseController *BaseController) Prepare() {
 func (baseController *BaseController) Finish() {
 	defer func() {
 		if baseController.MongoSession != nil {
+			log.Trace(baseController.UserID, "Finish", "Closing Session from baseController")
 			mongo.CloseSession(baseController.UserID, baseController.MongoSession)
 			baseController.MongoSession = nil
 		}
@@ -68,19 +68,54 @@ func (baseController *BaseController) Finish() {
 // response with the specified localized or provided message.
 func (baseController *BaseController) ParseAndValidate(params interface{}) bool {
 	// This is not working anymore :(
+	log.Trace(baseController.UserID, "ParseAndValidate", "About to call ParseForm")
 	if err := baseController.ParseForm(params); err != nil {
+		log.Trace(baseController.UserID, "ParseAndValidate", "ParseForm returned error: %s", err)
 		baseController.ServeError(err)
 		return false
 	}
+	//ParseForm fails to fetch arrays into the params variable. We need to do that manually:
+	allPostData := baseController.Ctx.Request.PostForm
+	log.Trace(baseController.UserID, "ParseAndValidate", "Lookup table: %+v", allPostData)
+
+  st := reflect.ValueOf(params).Elem()
+  typeOfST := st.Type()
+	for i := 0; i < st.NumField(); i++ {
+		field := st.Field(i)
+		switch field.Kind() {
+		case reflect.Slice:
+			lookup := typeOfST.Field(i).Tag.Get("form")
+			language := allPostData[lookup]
+			var array []string
+			if language == nil {
+					lookup = typeOfST.Field(i).Tag.Get("form") + "[]" //Beego seems to attach [] to slices!
+					array = allPostData[lookup]
+			} else {
+				 array = append(array,language[0])
+			}
+			log.Trace(baseController.UserID, "ParseAndValidate", "Modifying slice internals with lookup: %s using %+v of type: %v", lookup, array, reflect.TypeOf(array))
+			//Make the new slice:
+			slice := reflect.MakeSlice(reflect.TypeOf(array), len(array), len(array))
+			for idx, element := range array {
+					v := slice.Index(idx)
+					v.Set(reflect.ValueOf(element))
+			}
+			field.Set(slice)
+			log.Trace(baseController.UserID, "ParseAndValidate", "Slice set!!")
+		}
+	}
 
 	var valid validation.Validation
+	log.Trace(baseController.UserID, "ParseAndValidate", "About to call Valid with completed params: %+v",params)
 	ok, err := valid.Valid(params)
 	if err != nil {
+		log.Trace(baseController.UserID, "ParseAndValidate", "Valid returned error")
 		baseController.ServeError(err)
 		return false
 	}
 
 	if ok == false {
+		log.Trace(baseController.UserID, "ParseAndValidate", "but ok is false :(")
 		// Build a map of the Error messages for each field
 		messages2 := make(map[string]string)
 
@@ -98,6 +133,7 @@ func (baseController *BaseController) ParseAndValidate(params interface{}) bool 
 		}
 
 		// Build the Error response
+		log.Trace(baseController.UserID, "ParseAndValidate", "Building error response")
 		var errors []string
 		for _, err := range valid.Errors {
 			// Match an Error from the validation framework Errors
@@ -113,6 +149,7 @@ func (baseController *BaseController) ParseAndValidate(params interface{}) bool 
 			errors = append(errors, err.Message)
 		}
 
+		log.Trace(baseController.UserID, "ParseAndValidate", "About to return errors: %+v", errors)
 		baseController.ServeValidationErrors(errors)
 		return false
 	}
@@ -128,7 +165,7 @@ func (baseController *BaseController) ServeError(err error) {
 		Error string `json:"Error"`
 	}{err.Error()}
 	baseController.Ctx.Output.SetStatus(500)
-	baseController.ServeJson()
+	baseController.ServeJSON()
 }
 
 // ServeValidationErrors prepares and serves a validation exception.
@@ -137,7 +174,7 @@ func (baseController *BaseController) ServeValidationErrors(Errors []string) {
 		Errors []string `json:"Errors"`
 	}{Errors}
 	baseController.Ctx.Output.SetStatus(409)
-	baseController.ServeJson()
+	baseController.ServeJSON()
 }
 
 //** CATCHING PANICS
@@ -169,5 +206,5 @@ func (baseController *BaseController) AjaxResponse(resultCode int, resultString 
 	}
 
 	baseController.Data["json"] = response
-	baseController.ServeJson()
+	baseController.ServeJSON()
 }
