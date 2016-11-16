@@ -26,6 +26,7 @@ func (this *MainController) activeContent(view string, scripts bool) {
   }
 	this.LayoutSections["Header"] = "shared/header.html"
 	this.LayoutSections["Footer"] = "shared/footer.html"
+	this.LayoutSections["Modal"] = "shared/modal.html"
 	this.TplName = view + ".html"
 
 	sess := this.GetSession("acme")

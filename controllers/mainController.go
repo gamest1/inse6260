@@ -207,7 +207,7 @@ func (this *MainController) Home() {
     return
   }
 
-  this.activeContent("user/home", false)
+  this.activeContent("user/home", true)
 }
 
 func (this *MainController) DisplayAll() {

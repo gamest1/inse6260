@@ -1,8 +1,34 @@
 $(document).ready(function() {
+  $('#new-request-button').click(function() {
+		DisplayNewRequestForm();
+	});
+  $('#update-profile-button').click(function() {
+		DisplayUpdateProfileForm();
+	});
   $('#create-request-button-json').click(function() {
 		CreateNewRequest();
 	});
 });
+
+function DisplayNewRequestForm() {
+	try {
+		$('#system-modal-title').html("New Request Creation Form");
+		$('#system-modal-content').html("<div>Put your form here...</div>");
+		$("#systemModal").modal('show');
+	}	catch (e) {
+        alert(e);
+    }
+}
+
+function DisplayUpdateProfileForm() {
+	try {
+		$('#system-modal-title').html("Update Availability Form");
+		$('#system-modal-content').html("<div>Put your availability here...</div>");
+		$("#systemModal").modal('show');
+	}	catch (e) {
+        alert(e);
+    }
+}
 
 $.fn.serializeObject = function() {
     var o = {};

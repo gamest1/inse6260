@@ -94,7 +94,7 @@ var RequestBox = React.createClass({
     socket.on('dbrefresh', this.fetchAllRequests);
   },
   createRoom: function() {
-    socket.emit('create', this.props.userid);
+    socket.emit('create', userid);
     console.log("Room created for this user!");
     this.fetchAllRequests();
   },
@@ -103,7 +103,7 @@ var RequestBox = React.createClass({
     var self = this;
     $.ajax({
 	     method: "GET",
-       url: this.props.url + this.props.userid,
+       url: this.props.url + userid,
        dataType: 'json',
        cache: false,
        success: function(data) {
@@ -139,7 +139,5 @@ var RequestBox = React.createClass({
   }
 });
 
-ReactDOM.render(
-  <RequestBox  url="http://localhost:9003/requests/" userid="gamest1@gmail.com"/>,
-  document.getElementById('content')
-);
+var userid = document.getElementById('currentUser').innerHTML;
+ReactDOM.render(<RequestBox url="http://localhost:9003/requests/" />, document.getElementById('content'));

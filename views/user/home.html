@@ -1,1 +1,10 @@
 <h1>{{.TypeText}} Home Page</h1>
+<div id="content" class="container"></div>
+<div id="currentUser" hidden="true">{{.Email}}</div>
+<script type="text/babel" src="http://localhost:5000/react/app.js"></script>
+{{if eq .Type `p`}}
+<button class="btn btn-primary" id="new-request-button">New Request</button>
+{{end}}
+{{if eq .Type `cg`}}
+<button class="btn btn-primary" id="update-profile-button">Update Availability</button>
+{{end}}
