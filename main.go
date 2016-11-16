@@ -252,9 +252,8 @@ func main() {
 
 	// Load message strings
 	localize.Init("en-US")
-
+	beego.BConfig.WebConfig.Session.SessionOn = true
 	beego.Run()
-	//beego.SetStaticPath("/static","static")
 
 	log.Completed(helper.MainGoRoutine, "Website Shutdown")
 	log.Stop()

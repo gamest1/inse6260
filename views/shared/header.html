@@ -3,4 +3,12 @@
       <a href="#" class="navbar-brand">INSE 6260</a>
     </div>
 	<p class="nav-text">SPECTRIX HEALTH CARE SYSTEM</p>
+  {{if .InSession}}
+  <div class="nav navbar-nav navbar-right">
+    <a href="http://localhost:9003/user/logout" class="navbar-brand"><strong>Logout</strong></a>
+  </div>
+  <div class="nav navbar-nav navbar-right">
+    <p class="nav-text">Welcome {{.First}}</p>
+  </div>
+  {{end}}
 </div>

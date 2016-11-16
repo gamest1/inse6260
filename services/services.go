@@ -9,6 +9,7 @@ import (
 	"github.com/goinggo/beego-mgo/utilities/helper"
 	"github.com/goinggo/beego-mgo/utilities/mongo"
 	log "github.com/goinggo/tracelog"
+	
 	"gopkg.in/mgo.v2"
 )
 

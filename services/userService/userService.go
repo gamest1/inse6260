@@ -39,6 +39,27 @@ func init() {
 }
 
 //** PUBLIC FUNCTIONS
+// InsertNewUser adds a Request object to mongoDB
+func InsertNewUser(service *services.Service, newUser map[string]interface{}) error {
+	log.Startedf(service.UserID, "InsertNewUser", "newUser:%+v", newUser)
+  f := func(collection *mgo.Collection) error {
+		queryMap := bson.M(newUser)
+
+		log.Trace(service.UserID, "InsertNewUser", "MGO : db.%s.insert(%s)", Config.Collection, mongo.ToString(queryMap))
+		return collection.Insert(queryMap)
+	}
+
+  if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
+		if err != mgo.ErrNotFound {
+			log.CompletedError(err, service.UserID, "InsertNewUser")
+			return err
+		}
+	}
+
+	log.Completedf(service.UserID, "InsertNewUser", "new user objected successfully injected!")
+	return nil
+}
+
 
 // Login returns an error if an email-password combination doesn't exist in the database or returns the users profile:
 func Login(service *services.Service, email string, password string) (*userModel.Profile, error) {
@@ -54,9 +75,11 @@ func Login(service *services.Service, email string, password string) (*userModel
 
 	if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
 		if err != mgo.ErrNotFound {
-			log.CompletedError(err, service.UserID, "Login")
-			return nil, err
+			log.CompletedError(err, "Login", "Database find failed")
+		} else {
+			log.CompletedError(err, "Login", "User not found!")
 		}
+		return nil, err
 	}
 
 	log.Completedf(service.UserID, "Login", "user profile: %+v", &user.Profile)

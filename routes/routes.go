@@ -11,8 +11,21 @@ import (
 )
 
 func init() {
-	beego.Router("/", new(controllers.BuoyController), "get:Index")
+	//Unauthenticated (no session needed):
+	beego.Router("/user/login", new(controllers.MainController))
+	beego.Router("/user/logout", new(controllers.MainController), "get:Logout")
+	beego.Router("/user/register", new(controllers.MainController), "get,post:Register")
 
+	//Authenticated (no session needed):
+	beego.Router("/user/home", new(controllers.MainController), "get:Home")
+	beego.Router("/user/profile", new(controllers.MainController), "get,post:Profile") //get: displays availability; post: updates availability
+	beego.Router("/user/request", new(controllers.MainController), "get,post:Request") //get: displays a new form; post: creates new service request
+
+	beego.Router("/user/display", new(controllers.MainController), "get:DisplayAll") //get: displays all users in the system
+	beego.Router("/user/day", new(controllers.MainController), "get:DisplayDay") //get: displays all daily activity
+
+	//Old sample routes:
+	beego.Router("/users/retrieveuser", new(controllers.UserController), "post:RetrieveUser")
 	beego.Router("/users", new(controllers.UserController), "get:Index")
 	beego.Router("/users/retrieveuser", new(controllers.UserController), "post:RetrieveUser")
 
@@ -21,7 +34,4 @@ func init() {
 	beego.Router("/requests/createnew", new(controllers.RequestController), "post:CreateRequest")
 
 	beego.Router("/react", new(controllers.ReactController), "get:Index")
-
-	beego.Router("/buoy/retrievestation", new(controllers.BuoyController), "post:RetrieveStation")
-	beego.Router("/buoy/station/:stationId", new(controllers.BuoyController), "get,post:RetrieveStationJSON")
 }

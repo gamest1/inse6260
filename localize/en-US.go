@@ -12,10 +12,6 @@ var EnUS = `[
 		"translation": "An Application Error has occured."
 	},
 	{
-		"id": "invalid_station_id",
-		"translation": "Invalid Station Id Or Missing."
-	},
-	{
 		"id": "invalid_date",
 		"translation": "Invalid Date entered. Please check your format."
 	},

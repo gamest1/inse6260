@@ -1,0 +1,136 @@
+<div id="content">
+<h1>New user registration</h1>
+
+{{if .Errors}}
+{{range $rec := .Errors}}
+<h5>{{$rec}}</h5>
+{{end}}
+&nbsp;
+{{end}}
+
+<form method="POST">
+  <fieldset class="form-group">
+    <legend>User Type</legend>
+    <div class="form-check">
+      <label class="form-check-label">
+        <select class="selectpicker" data-style="btn-success" name="type" id="type">
+            <option value="p">Patient</option>
+            <option value="cg">Care Giver</option>
+            <option value="a">Agent</option>
+        </select>
+    </div>
+    <div class="form-group" id="invitationToken" hidden="true">
+      <label for="token">Invitation Token</label>
+      <input type="text" class="form-control" placeholder="Your token" id="token" name="token">
+    </div>
+  </fieldset>
+  <fieldset class="form-group">
+  <legend>Basic Information</legend>
+  <div class="form-group">
+    <label for="first">First Name</label>
+    <input type="text" class="form-control" placeholder="First Name" id="first" name="first">
+  </div>
+  <div class="form-group">
+    <label for="last">Last Name</label>
+    <input type="text" class="form-control" placeholder="Last Name" id="first" name="last">
+  </div>
+  <div class="form-group">
+  <label for="optionsGender1">Gender</label>
+  <div class="form-check">
+    <label class="form-check-label">
+      <input type="radio" class="form-check-input" name="gender" id="optionsGender1" value="m" checked>
+      Male
+    </label>
+  </div>
+  <div class="form-check">
+    <label class="form-check-label">
+      <input type="radio" class="form-check-input" name="gender" id="optionsGender2" value="f">
+      Female
+    </label>
+  </div>
+  </div>
+  <div class="form-group">
+    <label for="email">Username</label>
+    <input type="text" class="form-control" placeholder="Email address" id="email" name="email">
+  </div>
+  <div class="form-group">
+    <label for="password">Password (must be at least 6 characters)</label>
+    <input type="password" class="form-control" placeholder="Your password" id="password" name="password">
+  </div>
+  <div class="form-group">
+    <label for="password2">Confirm password</label>
+    <input type="password" class="form-control" placeholder="Repeat your password" id="password2" name="password2">
+  </div>
+  </fieldset>
+
+<fieldset class="form-group">
+<legend>Your address</legend>
+<div class="form-group">
+  <label for="apartment">Apartment</label>
+  <input type="text" class="form-control" placeholder="Apartment Number" id="apartment" name="apartment">
+</div>
+<div class="form-group">
+  <label for="streetnumber">Street Number</label>
+  <input type="number" class="form-control" aria-describedby="numberHelp" placeholder="Street Number" id="streetnumber" name="streetnumber">
+  <small id="numberHelp" class="form-text text-muted">For now, this must be a number</small>
+</div>
+<div class="form-group">
+  <label for="streetname">Street Name</label>
+  <input type="text" class="form-control" placeholder="Your Street" id="streetname" name="streetname">
+</div>
+<div class="form-group">
+  <label for="cityname">City</label>
+  <input type="text" class="form-control" placeholder="City" id="cityname" name="cityname">
+</div>
+<div class="form-group">
+  <label for="postalcode">Postal Code</label>
+  <input type="text" class="form-control" aria-describedby="zipHelp" placeholder="Postal Code" id="postalcode" name="postalcode">
+  <small id="zipHelp" class="form-text text-muted">No spaces. Only valid Canadian postal codes</small>
+</div>
+</fieldset>
+
+<fieldset class="form-group">
+<legend>Your details</legend>
+<div class="form-group">
+  <label for="languages">What languages do you speak?</label>
+  <select multiple class="form-control" id="languages" name="languages">
+    {{range $index, $val := .Languages}}
+      <option value="{{$val}}">{{$val}}</option>
+    {{end}}
+    <option value="other">Other</option>
+  </select>
+</div>
+<div class="form-group" hidden="true" id="otherlanguagediv">
+  <label for="otherlanguage">Add new language</label>
+  <input type="text" class="form-control" placeholder="Your language" id="otherlanguage" name="otherlanguage">
+</div>
+<div id="extendedSkills" hidden="true">
+<div class="form-group">
+  <label for="skills">What skills do you have?</label>
+  <select multiple class="form-control" id="skills" name="skills">
+    {{range $index, $val := .Skills}}
+      <option value="{{$val}}">{{$val}}</option>
+    {{end}}
+    <option value="other">Other</option>
+  </select>
+</div>
+<div class="form-group" hidden="true" id="otherskilldiv">
+  <label for="otherskill">Add new skill</label>
+  <input type="text" class="form-control" placeholder="Your skill" id="otherskill" name="otherskill">
+</div>
+
+{{range $day := .Days}}
+<div id="{{$day}}-time-range">
+    <p>{{$day}} Range: <span class="{{$day}}-slider-time">10:00 AM</span> - <span class="{{$day}}-slider-time2">12:00 PM</span></p>
+    <input type="hidden" id="{{$day}}" name="{{$day}}" value=6144>
+    <div class="sliders_step1">
+        <div id="{{$day}}-slider-range"></div>
+    </div>
+</div>
+{{end}}
+</div>
+
+<input type="submit" value="Register" />
+</fieldset>
+</form>
+</div>
