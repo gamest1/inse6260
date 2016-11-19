@@ -39,6 +39,31 @@ func init() {
 }
 
 //** PUBLIC FUNCTIONS
+// TypeForUser identifies the type of user base on its username
+func TypeForUser(service *services.Service, username string) (string, error) {
+	log.Startedf(service.UserID, "TypeForUser", "username[%s]", username)
+
+	var user userModel.User
+	f := func(collection *mgo.Collection) error {
+		queryMap := bson.M{"email":username}
+
+		log.Trace(service.UserID, "TypeForUser", "MGO : db.%s.find(%s,{\"profile.type\": 1}).limit(1)", Config.Collection, mongo.ToString(queryMap))
+		return collection.Find(queryMap).Select(bson.M{"profile.type": 1}).One(&user)
+	}
+
+	if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
+		if err != mgo.ErrNotFound {
+			log.CompletedError(err, "TypeForUser", "Database find failed")
+		} else {
+			log.CompletedError(err, "TypeForUser", "User not found!")
+		}
+		return "", err
+	}
+
+	log.Completedf(service.UserID, "TypeForUser", "User %s identified to have \"%s\" type", username, user.Profile.Type)
+	return user.Profile.Type, nil
+}
+
 // InsertNewUser adds a Request object to mongoDB
 func InsertNewUser(service *services.Service, newUser map[string]interface{}) error {
 	log.Startedf(service.UserID, "InsertNewUser", "newUser:%+v", newUser)

@@ -23,7 +23,7 @@ func (controller *ReactController) Index() {
   email := "gamest1@gmail.com"
 	log.Startedf(controller.UserID, "ReactController.Index", "email[%s]", email)
 
-	patientRequests, err := requestService.FetchAllRequestsForUser(&controller.Service, email, false)
+	patientRequests, err := requestService.FetchAllRequestsForUser(&controller.Service, email, "p")
 	if err != nil {
 		log.CompletedErrorf(err, controller.UserID, "ReactController.Index", "FetchAllRequestsForUser[%s]", email)
 		controller.ServeError(err)

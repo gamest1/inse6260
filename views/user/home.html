@@ -1,13 +1,54 @@
 <h1>{{.TypeText}} Home Page</h1>
+
+{{if eq .Type `a`}}
+<div class="wrapper">
+	<div class="row tab-row">
+		<div class="col-md-12">
+			<!-- Nav tabs -->
+			<ul class="nav nav-tabs">
+				<li class="active"><a href="#section1" data-toggle="tab">All system requests</a></li>
+				<li><a href="#section2" data-toggle="tab">All system users</a></li>
+        <li><a href="#section3" data-toggle="tab">Daily schedule</a></li>
+			</ul>
+		</div>
+	</div>
+  <!-- Tab panes -->
+	<div class="tab-content">
+
+		<div class="tab-pane active" id="section1">
+      <div id="content" class="container"></div>
+      <div id="currentUser" hidden="true">{{.Email}}</div>
+      <script type="text/babel" src="http://localhost:5000/react/app.js"></script>
+    </div><!-- tan-pane -->
+
+
+    <div class="tab-pane" id="section2">
+
+    </div><!-- tan-pane -->
+
+
+    <div class="tab-pane" id="section3">
+
+    </div><!-- tan-pane -->
+
+
+  </div><!-- Tab Content End -->
+</div><!-- Wrapper End -->
+{{end}}
+
+{{if eq .Type `p`}}
 <div id="content" class="container"></div>
 <div id="currentUser" hidden="true">{{.Email}}</div>
 <script type="text/babel" src="http://localhost:5000/react/app.js"></script>
-{{if eq .Type `p`}}
 <form action="http://localhost:9003/user/request" method="GET">
     <input type="submit" value="New Request" class="btn btn-primary"/>
 </form>
 {{end}}
+
 {{if eq .Type `cg`}}
+<div id="content" class="container"></div>
+<div id="currentUser" hidden="true">{{.Email}}</div>
+<script type="text/babel" src="http://localhost:5000/react/app.js"></script>
 <form action="http://localhost:9003/user/profile" method="GET">
     <input type="submit" value="Update Availability" class="btn btn-primary"/>
 </form>

@@ -7,8 +7,11 @@ import (
   "time"
   "strings"
 	bc "github.com/goinggo/beego-mgo/controllers/baseController"
+
+  "github.com/goinggo/beego-mgo/services/userService"
 	"github.com/goinggo/beego-mgo/services/requestService"
 	"github.com/goinggo/beego-mgo/models/requestModel"
+
   "github.com/goinggo/beego-mgo/utilities/location"
 	log "github.com/goinggo/tracelog"
 )
@@ -27,7 +30,7 @@ func (controller *RequestController) Index() {
   email := "gamest1@gmail.com"
 	log.Startedf(controller.UserID, "RequestController.Index", "email[%s]", email)
 
-	patientRequests, err := requestService.FetchAllRequestsForUser(&controller.Service, email, false)
+	patientRequests, err := requestService.FetchAllRequestsForUser(&controller.Service, email, "p")
 	if err != nil {
 		log.CompletedErrorf(err, controller.UserID, "RequestController.Index", "FetchAllRequestsForUser[%s]", email)
 		controller.ServeError(err)
@@ -55,8 +58,17 @@ func (controller *RequestController) RequestsForUser() {
 	if controller.ParseAndValidate(&params) == false {
 		return
 	}
-  log.Trace(controller.UserID, "RequestsForUser", "ParseAndValidate, params validated: %+v",params)
-  patientRequests, err := requestService.FetchAllRequestsForUser(&controller.Service, params.Email, false)
+
+  log.Trace(controller.UserID, "RequestsForUser", "Investigating type of user: %+v",params)
+  userType, err := userService.TypeForUser(&controller.Service, params.Email)
+	if err != nil {
+		log.CompletedErrorf(err, controller.UserID, "RequestsForUser", "TypeForUser[%s]", params.Email)
+		controller.ServeError(err)
+		return
+	}
+
+  log.Trace(controller.UserID, "RequestsForUser", "ParseAndValidate, params validated: %s, %s",params.Email,userType)
+  patientRequests, err := requestService.FetchAllRequestsForUser(&controller.Service, params.Email, userType)
 	if err != nil {
 		log.CompletedErrorf(err, controller.UserID, "RequestsForUser", "FetchAllRequestsForUser[%s]", params.Email)
 		controller.ServeError(err)

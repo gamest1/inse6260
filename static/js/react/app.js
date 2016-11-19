@@ -99,7 +99,6 @@ var RequestBox = React.createClass({
     this.fetchAllRequests();
   },
   fetchAllRequests: function() {
-    console.log("Do your Ajax magic to fetchAllRequests...")
     var self = this;
     $.ajax({
 	     method: "GET",

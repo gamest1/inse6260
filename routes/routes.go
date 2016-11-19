@@ -24,13 +24,15 @@ func init() {
 	beego.Router("/user/display", new(controllers.MainController), "get:DisplayAll") //get: displays all users in the system
 	beego.Router("/user/day", new(controllers.MainController), "get:DisplayDay") //get: displays all daily activity
 
+	//AJAX
+	beego.Router("/requests/:userId", new(controllers.RequestController), "get:RequestsForUser")
+
 	//Old sample routes:
 	beego.Router("/users/retrieveuser", new(controllers.UserController), "post:RetrieveUser")
 	beego.Router("/users", new(controllers.UserController), "get:Index")
 	beego.Router("/users/retrieveuser", new(controllers.UserController), "post:RetrieveUser")
 
 	beego.Router("/requests", new(controllers.RequestController), "get:Index")
-	beego.Router("/requests/:userId", new(controllers.RequestController), "get:RequestsForUser")
 	beego.Router("/requests/createnew", new(controllers.RequestController), "post:CreateRequest")
 
 	beego.Router("/react", new(controllers.ReactController), "get:Index")
