@@ -1,1 +1,68 @@
-<h1>This is the user/profile</h1>
+<div id="content">
+<h1>Your {{.TypeText}} profile</h1>
+
+{{if .Errors}}
+{{range $rec := .Errors}}
+<h5>{{$rec}}</h5>
+{{end}}
+&nbsp;
+{{end}}
+
+{{if eq .Success 1}}
+<div class="wrapper">
+<h3>Your details have been successfully updated!</h3>
+Click <a href="http://localhost:9003/user/home">here</a> to go back to your home page!
+</div>
+{{end}}
+
+<div class="wrapper" {{if eq .Success 1}}hidden="true"{{end}}>
+<form method="POST">
+  <fieldset class="form-group">
+  <legend>Basic Information</legend>
+  <div class="form-group">
+    <label for="first">First Name</label>
+    <input type="text" class="form-control" placeholder="First Name" id="first" name="first" value="{{.First}}" disabled>
+  </div>
+  <div class="form-group">
+    <label for="last">Last Name</label>
+    <input type="text" class="form-control" placeholder="Last Name" id="first" name="last" value="{{.Last}}" disabled>
+  </div>
+  <div class="form-group">
+    <label for="email">Username</label>
+    <input type="text" class="form-control" placeholder="Email address" id="email" name="email" value="{{.Email}}" disabled>
+  </div>
+  </fieldset>
+
+  <fieldset class="form-group">
+  <legend>Update your password</legend>
+  <div class="form-group">
+    <label for="password">Current Password</label>
+    <input type="password" class="form-control" placeholder="Your current password" id="currentpassword" name="currentpassword">
+  </div>
+  <div class="form-group">
+    <label for="password">New Password (must be at least 6 characters)</label>
+    <input type="password" class="form-control" placeholder="Your new password" id="password" name="password">
+  </div>
+  <div class="form-group">
+    <label for="password2">Confirm new password</label>
+    <input type="password" class="form-control" placeholder="Repeat your new password" id="password2" name="password2">
+  </div>
+  </fieldset>
+
+<fieldset class="form-group">
+<legend>Your availability</legend>
+{{range $day := .Days}}
+<div id="{{$day.Key}}-time-range">
+    <p>{{$day.Key}} Range: <span class="{{$day.Key}}-slider-time"></span> - <span class="{{$day.Key}}-slider-time2"></span></p>
+    <input type="hidden" id="{{$day.Key}}" name="{{$day.Key}}" value={{$day.Value}}>
+    <div class="sliders_step1">
+        <div id="{{$day.Key}}-slider-range"></div>
+    </div>
+</div>
+{{end}}
+
+<input type="submit" value="Update" />
+</fieldset>
+</form>
+</div><!-- Wrapper End -->
+</div><!-- Content End -->

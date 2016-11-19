@@ -130,10 +130,8 @@ func FetchRequest(service *services.Service, ID bson.ObjectId) (*requestModel.Re
 	}
 
 	if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
-		if err != mgo.ErrNotFound {
 			log.CompletedError(err, service.UserID, "FetchRequest")
 			return nil, err
-		}
 	}
 
 	log.Completedf(service.UserID, "FetchRequest", "Request found: %+v", request)

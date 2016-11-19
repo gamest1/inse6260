@@ -43,7 +43,7 @@ func (this *MainController) activeContent(view string, scripts bool) {
     } else if m["type"] == "cg" {
       this.Data["TypeText"] = "Care Giver"
     } else {
-      log.Trace("", "Unknown type found in session", "Don't know what to do...")
+      log.Trace("", "Unknown type found in session", "Don't know what to do Type[%s]", m["type"])
   		return
     }
 	} else {
@@ -122,9 +122,12 @@ func (this *MainController) Post() {
     		//******** Create session and go back to previous page
     		m := make(map[string]interface{})
     		m["first"] = userProfile.FirstName
+    		m["last"] = userProfile.LastName
     		m["username"] = email
     		m["timestamp"] = time.Now()
         m["type"] = userProfile.Type
+        m["location"] = userProfile.Location
+        m["availability"] = userProfile.Availability
     		this.SetSession("acme", m)
     		this.Redirect("/user/home", 302)
     	} else {

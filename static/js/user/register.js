@@ -92,6 +92,8 @@ $(document).ready(function() {
 
 						$("#" + dia).val(acc);
 		};
+
+		console.log($("#" + day).val())
 		$(sel).slider({
 		    range: true,
 		    min: 0,

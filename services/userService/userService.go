@@ -61,6 +61,35 @@ func InsertNewUser(service *services.Service, newUser map[string]interface{}) er
 }
 
 
+func UpdateUserAvailability(service *services.Service, newUser map[string]interface{}) error {
+	log.Startedf(service.UserID, "UpdateUserAvailability", "newUser[%+v]", newUser)
+
+	f := func(collection *mgo.Collection) error {
+		if newUser["currentpassword"] != nil {
+			queryMap := bson.M{"$set":bson.M{"password":newUser["newpassword"],"profile.availability":newUser["profile"].(*userModel.Profile).Availability}}
+			log.Trace(service.UserID, "UpdateUserAvailability", "MGO 1: db.%s.update(%s)", Config.Collection, mongo.ToString(queryMap))
+			return collection.Update( bson.M{"email": newUser["email"], "password": newUser["currentpassword"]} , queryMap)
+		} else {
+			queryMap := bson.M{"$set":bson.M{"profile.availability":newUser["profile"].(*userModel.Profile).Availability}}
+			log.Trace(service.UserID, "UpdateUserAvailability", "MGO 2: db.%s.update(%s)", Config.Collection, mongo.ToString(queryMap))
+			return collection.Update( bson.M{"email": newUser["email"]} , queryMap)
+		}
+		return nil
+	}
+
+	if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
+		if err != mgo.ErrNotFound {
+			log.CompletedError(err, "UpdateUserAvailability", "Database update failed")
+		} else {
+			log.CompletedError(err, "UpdateUserAvailability", "User not found!")
+		}
+		return err
+	}
+
+	log.Completedf(service.UserID, "UpdateUserAvailability", "user profile: %+v", newUser)
+	return nil
+}
+
 // Login returns an error if an email-password combination doesn't exist in the database or returns the users profile:
 func Login(service *services.Service, email string, password string) (*userModel.Profile, error) {
 	log.Startedf(service.UserID, "Login", "email[%s]", email)
@@ -69,7 +98,7 @@ func Login(service *services.Service, email string, password string) (*userModel
 	f := func(collection *mgo.Collection) error {
 		queryMap := bson.M{"email": email, "password": password}
 
-		log.Trace(service.UserID, "Login", "MGO : db.%s.find(%s,{\"profile\": 1).limit(1)", Config.Collection, mongo.ToString(queryMap))
+		log.Trace(service.UserID, "Login", "MGO : db.%s.find(%s,{\"profile\": 1}).limit(1)", Config.Collection, mongo.ToString(queryMap))
 		return collection.Find(queryMap).Select(bson.M{"profile": 1}).One(&user)
 	}
 

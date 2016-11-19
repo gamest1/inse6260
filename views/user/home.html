@@ -3,8 +3,12 @@
 <div id="currentUser" hidden="true">{{.Email}}</div>
 <script type="text/babel" src="http://localhost:5000/react/app.js"></script>
 {{if eq .Type `p`}}
-<button class="btn btn-primary" id="new-request-button">New Request</button>
+<form action="http://localhost:9003/user/request" method="GET">
+    <input type="submit" value="New Request" class="btn btn-primary"/>
+</form>
 {{end}}
 {{if eq .Type `cg`}}
-<button class="btn btn-primary" id="update-profile-button">Update Availability</button>
+<form action="http://localhost:9003/user/profile" method="GET">
+    <input type="submit" value="Update Availability" class="btn btn-primary"/>
+</form>
 {{end}}

@@ -108,10 +108,14 @@ var RequestBox = React.createClass({
        cache: false,
        success: function(data) {
           var all = [];
-          for (let o of data) {
-            all.push(new ServiceRequest(o));
+          if (data) {
+            for (let o of data) {
+              all.push(new ServiceRequest(o));
+            }
+            console.log("Got " + all.length + " results");
+          } else {
+            console.log("Got no LERT table results");
           }
-          console.log("Got " + all.length + " results");
           self.replaceState({data : all});
        },
        error: function(xhr, status, err) {
