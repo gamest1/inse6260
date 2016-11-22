@@ -59,6 +59,7 @@ var Request = React.createClass({
 });
 
 var socket;
+var oData;
 
 var RequestBox = React.createClass({
   initSocket: function() {
@@ -86,6 +87,7 @@ var RequestBox = React.createClass({
             console.log("Found entry! changing status to " + res[0]);
             var newState = self.state.data.slice();
             newState[i].status = res[0];
+            oData = newState;
             self.replaceState({data : newState});
             break;
         }
@@ -95,7 +97,7 @@ var RequestBox = React.createClass({
   },
   createRoom: function() {
     socket.emit('create', userid);
-    console.log("Room created for this user!");
+    console.log("Room created/join for this user/application!");
     this.fetchAllRequests();
   },
   fetchAllRequests: function() {
@@ -115,6 +117,7 @@ var RequestBox = React.createClass({
           } else {
             console.log("Got no LERT table results");
           }
+          oData = all;
           self.replaceState({data : all});
        },
        error: function(xhr, status, err) {
@@ -125,11 +128,25 @@ var RequestBox = React.createClass({
   getInitialState: function() {
      console.log("getInitialState...");
      this.initSocket();
+     oData = [];
      return {data: []};
   },
   componentDidMount: function() {
    console.log("componentDidMount...");
    this.createRoom();
+   window.requestBox = this;
+  },
+  restoreDataSet: function() {
+    this.replaceState({data : oData});
+  },
+  filterDataSet: function(start,end) {
+    var currentState = this.state.data.slice();
+    oData = currentState;
+    var newState = currentState.filter(function (el) {
+          var d = new Date(el.StartTime);
+          return d <= end && d >= start;
+    });
+    this.replaceState({data : newState});
   },
   render: function() {
     console.log("Rendering RequestBox...");

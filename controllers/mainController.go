@@ -89,12 +89,11 @@ func (this *MainController) Register() {
     valid.MinSize(cityName, 1, "City Name")
     valid.Match(postalCode, regexp.MustCompile(`(?i)([ABCEGHJKLMNPRSTVXY]\d)([ABCEGHJKLMNPRSTVWXYZ]\d){2}`), "Postal Code")
     valid.MinSize(languages, 1, "Language selection")
-    valid.MinSize(skills, 1, "Skill selection")
     valid.MinSize(kind, 1, "User Type")
 
     if kind == "a" {
       token := this.GetString("token")
-      if (token != "secret token") {
+      if (token != "secrettoken") {
         errormap := []string{"Secret token doesn't match"}
         this.Data["Errors"] = errormap
         log.Trace("", "POST Registration", "3) Token: %+v", errormap)
@@ -104,6 +103,7 @@ func (this *MainController) Register() {
 
     newAvailability := &availability.Availability{0, 0, 0, 0, 0, 0, 0}
     if kind == "cg" {
+      valid.MinSize(skills, 1, "Skill selection")
       for i := 0; i < 7 ; i++ {
           switch i {
             case 0:
@@ -174,8 +174,8 @@ func (this *MainController) Register() {
       return
     }
 
-    log.Trace("POST Registration", "Should redirect or create session or something", "")
-
+    this.Data["Success"] = 1
+    log.Trace("POST Registration", "Done! Redirecting to home:", "")
 	} else {
     log.Trace("", "Register GET", "I'm here!!!")
   }
@@ -442,12 +442,47 @@ func (this *MainController) Home() {
   this.activeContent("user/home", true)
 }
 
-func (this *MainController) DisplayAll() {
-  log.Trace("", "Home DisplayAll???", "I'm here!!!")
-  this.activeContent("user/displayall", false)
-}
-
 func (this *MainController) DisplayDay() {
   log.Trace("", "Home DisplayDay???", "I'm here!!!")
   this.activeContent("user/displayd", false)
+}
+
+//** AJAX FUNCTIONS
+func (this *MainController) DisplayAll() {
+  log.Startedf("MainController", "DisplayAll", "")
+
+  errormap := []string{}
+  email := this.GetString(":userId")
+
+  valid := validation.Validation{}
+  valid.Email(email, "Email")
+
+  if valid.HasErrors() {
+    for _, err := range valid.Errors {
+      errormap = append(errormap, "Validation failed on " + err.Key + ": " + err.Message + "\n")
+    }
+    log.Trace("", "POST Request", "valid.HasErrors[%+v]", errormap)
+    return
+  }
+
+  log.Trace("MainController", "DisplayAll", "Investigating type of user: %s",email)
+  userType, err := userService.TypeForUser(&this.Service, email)
+	if err != nil {
+		log.CompletedErrorf(err, "MainController", "DisplayAll", "TypeForUser[%s]", email)
+		return
+	}
+
+  if userType == "a" {
+    log.Trace("MainController", "DisplayAll", "Unauthorized user attempting system fetch: %s - %s",email,userType)
+    systemUsers, err := userService.FindUsersOfKind(&this.Service, "all")
+    if err != nil {
+      log.CompletedErrorf(err, "MainController", "DisplayAll", "FindUsersOfKind[%s]", "all")
+      return
+    }
+    this.Data["json"] = systemUsers
+    this.ServeJSON()
+  } else {
+    log.Trace("MainController", "DisplayAll", "Unauthorized user attempting system fetch: %s - %s",email,userType)
+    return
+  }
 }

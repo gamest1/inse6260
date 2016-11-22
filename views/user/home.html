@@ -2,6 +2,7 @@
 
 {{if eq .Type `a`}}
 <div class="wrapper">
+	<div id="currentUser" hidden="true">{{.Email}}</div>
 	<div class="row tab-row">
 		<div class="col-md-12">
 			<!-- Nav tabs -->
@@ -16,14 +17,25 @@
 	<div class="tab-content">
 
 		<div class="tab-pane active" id="section1">
+
+			<div class="datecontrols">
+    		<label for="usedate">Check this box to filter by date:</label>
+				<input type="checkbox" id="usedate" name="usedate" />
+
+			  <div id="daterange" hidden="true">
+				  <label for="daterange">Select a range:</label>
+				  <input type="text" name="daterange" value="" />
+			  </div>
+			</div>
+
       <div id="content" class="container"></div>
-      <div id="currentUser" hidden="true">{{.Email}}</div>
       <script type="text/babel" src="http://localhost:5000/react/app.js"></script>
     </div><!-- tan-pane -->
 
 
     <div class="tab-pane" id="section2">
-
+      <div id="userslist" class="container"></div>
+      <script type="text/babel" src="http://localhost:5000/react/users.js"></script>
     </div><!-- tan-pane -->
 
 

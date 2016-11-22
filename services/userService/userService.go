@@ -210,16 +210,22 @@ func FetchProfile(service *services.Service, email string) (*userModel.Profile, 
 	return &user.Profile, nil
 }
 
-// FindUsersOfType retrieves the users for the specified type
+// FindUsersOfType retrieves the users for the specified type: "a", "cg", or "p".
+// If the key word "all" is passed, this function returns all system users.
 func FindUsersOfKind(service *services.Service, kind string) ([]userModel.User, error) {
 	log.Startedf(service.UserID, "FindUsersOfKind", "kind[%s]", kind)
 
 	var users []userModel.User
 	f := func(collection *mgo.Collection) error {
-		queryMap := bson.M{"profile.type": kind}
-
-		log.Trace(service.UserID, "FindUsersOfKind", "Query : db.%s.find(%s)", Config.Collection, mongo.ToString(queryMap))
-		return collection.Find(queryMap).Select(bson.M{"email": 1, "profile": 1, "_id": 0}).All(&users)
+		if kind == "all" {
+			queryMap := bson.M{}
+			log.Trace(service.UserID, "FindUsersOfKind", "Query : db.%s.find(%s)", Config.Collection, mongo.ToString(queryMap))
+			return collection.Find(queryMap).Select(bson.M{"email": 1, "profile": 1, "_id": 0}).All(&users)
+		} else {
+			queryMap := bson.M{"profile.type": kind}
+			log.Trace(service.UserID, "FindUsersOfKind", "Query : db.%s.find(%s)", Config.Collection, mongo.ToString(queryMap))
+			return collection.Find(queryMap).Select(bson.M{"email": 1, "profile": 1, "_id": 0}).All(&users)
+		}
 	}
 
 	if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {

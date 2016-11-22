@@ -8,6 +8,14 @@
 &nbsp;
 {{end}}
 
+{{if eq .Success 1}}
+<div class="wrapper">
+<h3>Your request has been successfully submitted!</h3>
+Click <a href="http://localhost:9003/user/home">here</a> to go back to your home page!
+</div>
+{{end}}
+
+<div class="wrapper" {{if eq .Success 1}}hidden="true"{{end}}>
 <form method="POST">
   <fieldset class="form-group">
     <legend>User Type</legend>
@@ -133,4 +141,5 @@
 <input type="submit" value="Register" />
 </fieldset>
 </form>
+</div>
 </div>

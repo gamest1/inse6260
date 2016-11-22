@@ -36,6 +36,12 @@ type watchConfiguration struct {
 		Watchdb  	 			string
 		Watchcollection string
 }
+// generalConfiguration contains settings for listening to service request or user changes.
+type generalConfiguration struct {
+		Database   string
+		Collection string
+}
+
 //
 type simpleObject struct {
 	  ID         bson.ObjectId        `bson:"_id,omitempty"`
@@ -85,6 +91,16 @@ func DatabaseCheckup() {
 		log.CompletedError(err, "DatabaseCheckup", "Watch configuration extraction failed...")
 		return
 	}
+	var rConfig generalConfiguration
+	if err := envconfig.Process("requests", &rConfig); err != nil {
+		log.CompletedError(err, "DatabaseCheckup", "Requests configuration extraction failed...")
+		return
+	}
+	var uConfig generalConfiguration
+	if err := envconfig.Process("users", &uConfig); err != nil {
+		log.CompletedError(err, "DatabaseCheckup", "Users configuration extraction failed...")
+		return
+	}
 
 	//var PermanentMongoSession *mgo.Session
 	PermanentMongoSession, err := mongo.CopyPermanentSession("")
@@ -95,6 +111,9 @@ func DatabaseCheckup() {
 
 	//var collection *mgo.Collection (this is our oplog.rs collection!)
 	collection := PermanentMongoSession.DB(Config.Watchdb).C(Config.Watchcollection)
+	userUpdate := strings.ToLower(uConfig.Database + "." + uConfig.Collection)
+	requestUpdate := strings.ToLower(rConfig.Database + "." + rConfig.Collection)
+
 	var result watchRecord
   var lastId time.Time
 	iter := collection.Find(nil).Sort("$natural").Tail(3 * time.Second)
@@ -128,12 +147,18 @@ func DatabaseCheckup() {
 							client.Emit("dbupdate", strings.Replace(message,"\"","",-1))
 							log.Trace("", "DatabaseCheckup", "dbupdate: Message emitted %s", message)
 						}
-				 } else if result.Operation == "i" {
-					 log.Trace("", "DatabaseCheckup", "Processing insert")
+				 } else if result.Operation == "i" && result.Collection == userUpdate {
+					 log.Trace("", "DatabaseCheckup", "Processing user insert")
+					 message := "all::New user inserted"
+					 client.Emit("urefresh", message)
+					 log.Trace("", "DatabaseCheckup", "urefresh: Message emitted %s", message)
+				 } else if result.Operation == "i" && result.Collection == requestUpdate {
+					 log.Trace("", "DatabaseCheckup", "Processing request insert:")
 					 message := result.Object.Originator
 					 client.Emit("dbrefresh", message)
 					 log.Trace("", "DatabaseCheckup", "dbrefresh: Message emitted %s", message)
 				 }
+
 				 lastId = result.TS
      }
      if iter.Err() != nil {
@@ -193,6 +218,13 @@ func SetupSocketServer() {
 						if ok {
 								log.Trace("", "SetupSocketServer", "Broadcasting refresh message to %s",thisRoom)
 								server.BroadcastTo(thisRoom,"dbrefresh","")
+						}
+				})
+				so.On("urefresh", func(msg string) {
+						log.Trace("", "SetupSocketServer", "Incoming urefresh message[%+v]",msg)
+						for room, _ := range AllReactiveUsers {
+								log.Trace("", "SetupSocketServer", "Broadcasting urefresh message to %s",room)
+								server.BroadcastTo(room,"urefresh","")
 						}
 				})
         so.On("disconnection", func() {
