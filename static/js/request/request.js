@@ -111,8 +111,9 @@ function CreateNewRequest_Callback() {
 }
 
 // Class definition / constructor
-var ServiceRequest = function ServiceRequest(apiObject) {
+var ServiceRequest = function ServiceRequest(apiObject,userType) {
   // Initialization!
+  this["Actions"] = userType;
   for (var property in apiObject) {
       if (apiObject.hasOwnProperty(property)) {
         switch(property) {

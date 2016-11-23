@@ -17,6 +17,7 @@ var RequestList = React.createClass({
             <th>Status</th>
             <th>Location</th>
             <th>Details</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -27,8 +28,49 @@ var RequestList = React.createClass({
   }
 });
 
+var CancelButton = React.createClass({
+    cancelClick: function () {
+      $.ajax({
+  	     method: "POST",
+         url: this.props.url + this.props.request,
+         dataType: 'json',
+         cache: false,
+         success: function(data) {
+              console.log("Sucessfully transmitted cancel for " + this.props.request);
+         },
+         error: function(xhr, status, err) {
+           console.error(this.props.url, status, err.toString());
+         }
+      });
+    },
+    render: function() {
+          return <button className="btn btn-danger" onClick={this.cancelClick}>Cancel</button>;
+    }
+});
+
+var CompleteButton = React.createClass({
+    completeClick: function () {
+      $.ajax({
+         method: "POST",
+         url: this.props.url + this.props.request,
+         dataType: 'json',
+         cache: false,
+         success: function(data) {
+              console.log("Sucessfully transmitted completed message for " + this.props.request);
+         },
+         error: function(xhr, status, err) {
+           console.error(this.props.url, status, err.toString());
+         }
+      });
+    },
+    render: function() {
+          return <button className="btn btn-success" onClick={this.completeClick}>Complete</button>;
+    }
+});
+
 var Request = React.createClass({
   render: function() {
+    var self = this;
     console.log("Rendering Request...");
     var requestLanguages = this.props.request.Requirements.languages.reduce(function (acc, language, idx, arr) {
       if(idx==arr.length - 1) {
@@ -43,6 +85,23 @@ var Request = React.createClass({
     };
     const shortID = this.props.request.ID.substr(this.props.request.ID.length-6,6);
     const loc = this.props.request.printLocation();
+    const actions = function(s) {
+      if (s == "pending") {
+          return <CancelButton request={self.props.request.ID} url="http://localhost:9003/requests/cancel/"/>;
+      } else if (s == "allocated") {
+          if (self.props.request.Actions == "cg") {
+            //Care Givers can Cancel AND mark as Completed!
+            return  (
+              <div>
+              <CancelButton request={self.props.request.ID} url="http://localhost:9003/requests/cancel/"/>
+              <CompleteButton request={self.props.request.ID} url="http://localhost:9003/requests/complete/"/>
+              </div>
+            );
+          } else {
+            return <CancelButton request={self.props.request.ID} url="http://localhost:9003/requests/cancel/"/>;
+          }
+      }
+    }(this.props.request.status);
     return (
       <tr>
         <td>{shortID}</td>
@@ -53,6 +112,7 @@ var Request = React.createClass({
         <td>Request for a {this.props.request.Requirements.Gender} {this.props.request.Requirements.skill} able to speak:<br/>
         {requestLanguages}
         </td>
+        <td>{actions}</td>
       </tr>
     );
   }
@@ -109,9 +169,9 @@ var RequestBox = React.createClass({
        cache: false,
        success: function(data) {
           var all = [];
-          if (data) {
-            for (let o of data) {
-              all.push(new ServiceRequest(o));
+          if (data.Requests) {
+            for (let o of data.Requests) {
+              all.push(new ServiceRequest(o,data.UserType));
             }
             console.log("Got " + all.length + " results");
           } else {

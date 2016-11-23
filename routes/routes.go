@@ -24,7 +24,9 @@ func init() {
 	beego.Router("/user/day", new(controllers.MainController), "get:DisplayDay") //get: displays all daily activity
 
 	//AJAX
-	beego.Router("/requests/:userId", new(controllers.RequestController), "get:RequestsForUser")
+	beego.Router("/requests/:userId", new(controllers.MainController), "get:RequestsForUser")
+	beego.Router("/requests/cancel/:reqId", new(controllers.MainController), "post:CancelRequest")
+	beego.Router("/requests/complete/:reqId", new(controllers.MainController), "post:CompleteRequest")
 	beego.Router("/user/display/:userId", new(controllers.MainController), "get:DisplayAll") //get: displays all users in the system if userId is an agent
 
 	//Old sample routes:
@@ -36,4 +38,7 @@ func init() {
 	beego.Router("/requests/createnew", new(controllers.RequestController), "post:CreateRequest")
 
 	beego.Router("/react", new(controllers.ReactController), "get:Index")
+
+	//Old AJAX call:
+	//beego.Router("/requests/:userId", new(controllers.RequestController), "get:RequestsForUser")
 }

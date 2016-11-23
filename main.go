@@ -143,9 +143,19 @@ func DatabaseCheckup() {
 					 	if err != nil {
 					 		log.CompletedErrorf(err, findService.UserID, "DatabaseCheckup", "FetchRequest")
 					 	} else {
-							message := anUpdateRequest.Originator + "::" + anUpdateRequest.Status + "::" + mongo.ToString(anUpdateRequest.ID)
-							client.Emit("dbupdate", strings.Replace(message,"\"","",-1))
-							log.Trace("", "DatabaseCheckup", "dbupdate: Message emitted %s", message)
+							if anUpdateRequest.CareGiver != "" {
+								//If there is a CareGiver involved, notify both:
+								message := anUpdateRequest.Originator + "::" + anUpdateRequest.Status + "::" + mongo.ToString(anUpdateRequest.ID)
+								client.Emit("dbupdate", strings.Replace(message,"\"","",-1))
+								log.Trace("", "DatabaseCheckup", "dbupdate: Message emitted %s", message)
+								message = anUpdateRequest.CareGiver + "::" + anUpdateRequest.Status + "::" + mongo.ToString(anUpdateRequest.ID)
+								client.Emit("dbupdate", strings.Replace(message,"\"","",-1))
+								log.Trace("", "DatabaseCheckup", "dbupdate: Message emitted %s", message)
+							} else {
+								message := anUpdateRequest.Originator + "::" + anUpdateRequest.Status + "::" + mongo.ToString(anUpdateRequest.ID)
+								client.Emit("dbupdate", strings.Replace(message,"\"","",-1))
+								log.Trace("", "DatabaseCheckup", "dbupdate: Message emitted %s", message)
+							}
 						}
 				 } else if result.Operation == "i" && result.Collection == userUpdate {
 					 log.Trace("", "DatabaseCheckup", "Processing user insert")

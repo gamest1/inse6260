@@ -17,6 +17,11 @@ import (
   "github.com/goinggo/beego-mgo/utilities/availability"
 )
 
+type RequestsResponse struct {
+    UserType string
+    Requests []requestModel.Request
+}
+
 func (this *MainController) addSystemLanguagesAndSkills() {
   systemSkills, err := userService.FetchAllSkills(&this.Service)
   if err != nil {
@@ -461,7 +466,7 @@ func (this *MainController) DisplayAll() {
     for _, err := range valid.Errors {
       errormap = append(errormap, "Validation failed on " + err.Key + ": " + err.Message + "\n")
     }
-    log.Trace("", "POST Request", "valid.HasErrors[%+v]", errormap)
+    log.Trace("", "DisplayAll", "valid.HasErrors[%+v]", errormap)
     return
   }
 
@@ -473,7 +478,7 @@ func (this *MainController) DisplayAll() {
 	}
 
   if userType == "a" {
-    log.Trace("MainController", "DisplayAll", "Unauthorized user attempting system fetch: %s - %s",email,userType)
+    log.Trace("MainController", "DisplayAll", "Agent performing system fetch: %s - %s",email,userType)
     systemUsers, err := userService.FindUsersOfKind(&this.Service, "all")
     if err != nil {
       log.CompletedErrorf(err, "MainController", "DisplayAll", "FindUsersOfKind[%s]", "all")
@@ -485,4 +490,74 @@ func (this *MainController) DisplayAll() {
     log.Trace("MainController", "DisplayAll", "Unauthorized user attempting system fetch: %s - %s",email,userType)
     return
   }
+}
+
+func (this *MainController) RequestsForUser() {
+  log.Startedf("MainController", "RequestsForUser", "")
+
+  errormap := []string{}
+  email := this.GetString(":userId")
+
+  valid := validation.Validation{}
+  valid.Email(email, "Email")
+
+  if valid.HasErrors() {
+    for _, err := range valid.Errors {
+      errormap = append(errormap, "Validation failed on " + err.Key + ": " + err.Message + "\n")
+    }
+    log.Trace("", "RequestsForUser", "valid.HasErrors[%+v]", errormap)
+    return
+  }
+
+  log.Trace("MainController", "RequestsForUser", "Investigating type of user: %s",email)
+  userType, err := userService.TypeForUser(&this.Service, email)
+	if err != nil {
+		log.CompletedErrorf(err, "MainController", "RequestsForUser", "TypeForUser[%s]", email)
+		return
+	}
+
+  log.Trace("MainController", "RequestsForUser", "Fetching requests for user: %s - %s",email,userType)
+  patientRequests, err := requestService.FetchAllRequestsForUser(&this.Service, email, userType)
+	if err != nil {
+		log.CompletedErrorf(err, "MainController", "RequestsForUser", "FetchAllRequestsForUser[%s]", email)
+		return
+	}
+
+	this.Data["json"] = &RequestsResponse{ userType, patientRequests }
+	this.ServeJSON()
+}
+
+func (this *MainController) CancelRequest() {
+  this.updateRequest("canceled")
+}
+func (this *MainController) CompleteRequest() {
+  this.updateRequest("completed")
+}
+
+func (this *MainController) updateRequest(status string) {
+  log.Startedf("MainController", "UpdateRequest[%s]", status)
+
+  errormap := []string{}
+  reqId := this.GetString(":reqId")
+
+  valid := validation.Validation{}
+  valid.MinSize(reqId, 20, "Request ID")
+
+  if valid.HasErrors() {
+    for _, err := range valid.Errors {
+      errormap = append(errormap, "Validation failed on " + err.Key + ": " + err.Message + "\n")
+    }
+    log.Trace("", "UpdateRequest", "valid.HasErrors[%+v]", errormap)
+    return
+  }
+
+  log.Trace("MainController", "UpdateRequest", "Updating request [%s]", reqId)
+  err := requestService.UpdateRequest(&this.Service, reqId, status)
+	if err != nil {
+		log.CompletedErrorf(err, "MainController", "UpdateRequest", "UpdateRequest[%s]: %s", reqId, status)
+		return
+	}
+
+//	this.Data["json"] = &interface{}{}
+	this.ServeJSON()
 }

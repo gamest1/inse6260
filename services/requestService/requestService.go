@@ -41,6 +41,27 @@ func init() {
 }
 
 //** PUBLIC FUNCTIONS
+func UpdateRequest(service *services.Service, requestID string, status string) error {
+	log.Startedf(service.UserID, "UpdateRequest", "requestID[%s]: %s", requestID, status)
+  f := func(collection *mgo.Collection) error {
+
+		selectorMap := bson.M{"_id": bson.ObjectIdHex(requestID)}
+    updateMap := bson.M{"$set": bson.M{"status": status}}
+
+		log.Trace(service.UserID, "UpdateRequest", "MGO : db.%s.update(%s,%s)", Config.Collection, mongo.ToString(selectorMap),mongo.ToString(updateMap))
+		return collection.Update(selectorMap,updateMap)
+	}
+
+  if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
+		if err != mgo.ErrNotFound {
+			log.CompletedError(err, service.UserID, "UpdateRequest")
+			return err
+		}
+	}
+
+	log.Completedf(service.UserID, "UpdateRequest", "request successfully updated!")
+	return nil
+}
 
 // InsertNewRequest adds a Request object to mongoDB
 func InsertNewRequest(service *services.Service, request map[string]interface{}) error {
@@ -59,7 +80,7 @@ func InsertNewRequest(service *services.Service, request map[string]interface{})
 		}
 	}
 
-	log.Completedf(service.UserID, "InsertNewRequest", "new request objected successfully injected!")
+	log.Completedf(service.UserID, "InsertNewRequest", "new request object successfully injected!")
 	return nil
 }
 
@@ -101,7 +122,7 @@ func FetchAllRequestsForUser(service *services.Service, email string, kind strin
       queryMap["care_giver"] = email
     } else if kind == "p" {
       queryMap["originator"] = email
-    } 
+    }
 
 		log.Trace(service.UserID, "FetchAllRequestsForUser", "Query : db.%s.find(%s)", Config.Collection, mongo.ToString(queryMap))
 		return collection.Find(queryMap).All(&requests)

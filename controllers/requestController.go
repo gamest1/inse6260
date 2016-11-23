@@ -48,7 +48,7 @@ func (controller *RequestController) Index() {
 
 //** AJAX FUNCTIONS
 
-func (controller *RequestController) RequestsForUser() {
+func (controller *RequestController) OldRequestsForUser() {
   log.Startedf(controller.UserID, "RequestsForUser", "")
 	params := struct {
 		Email string `form:":userId" valid:"Required; Email" error:"invalid_user_id"`
