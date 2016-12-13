@@ -41,6 +41,33 @@ func init() {
 }
 
 //** PUBLIC FUNCTIONS
+func AllocateRequest(service *services.Service, requestID string, careGiver string) error {
+	log.Startedf(service.UserID, "AllocateRequest", "requestID[%s] to %s", requestID, careGiver)
+  f := func(collection *mgo.Collection) error {
+		selectorMap := bson.M{"_id": bson.ObjectIdHex(requestID)}
+
+    if careGiver == "" {
+      updateMap := bson.M{"$set": bson.M{"status": "pending", "care_giver" : ""}}
+  		log.Trace(service.UserID, "AllocateRequest", "MGO : db.%s.update(%s,%s)", Config.Collection, mongo.ToString(selectorMap),mongo.ToString(updateMap))
+  		return collection.Update(selectorMap,updateMap)
+    } else {
+      updateMap := bson.M{"$set": bson.M{"status": "allocated", "care_giver" : careGiver}}
+      log.Trace(service.UserID, "AllocateRequest", "MGO : db.%s.update(%s,%s)", Config.Collection, mongo.ToString(selectorMap),mongo.ToString(updateMap))
+      return collection.Update(selectorMap,updateMap)
+    }
+	}
+
+  if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
+		if err != mgo.ErrNotFound {
+			log.CompletedError(err, service.UserID, "AllocateRequest")
+			return err
+		}
+	}
+
+	log.Completedf(service.UserID, "AllocateRequest", "request successfully allocated!")
+	return nil
+}
+
 func UpdateRequest(service *services.Service, requestID string, status string) error {
 	log.Startedf(service.UserID, "UpdateRequest", "requestID[%s]: %s", requestID, status)
   f := func(collection *mgo.Collection) error {

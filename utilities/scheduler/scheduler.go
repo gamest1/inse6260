@@ -1,6 +1,8 @@
 package scheduler
 
 import (
+  "fmt"
+
   log "github.com/goinggo/tracelog"
   "github.com/goinggo/beego-mgo/utilities/availability"
 
@@ -48,8 +50,21 @@ func (req *IMRequest) Size() int {
 
 func (sol *SchedulingSolution) DumpToDB() {
   log.Trace("", "DumpToDB", "Should dump solution to DB")
+
+  findService := &services.Service{}
+  findService.UserID = "Scheduler subsystem"
+  MonotonicMongoSession, err := mongo.CopyMonotonicSession("")
+  if err != nil {
+    log.Error(err, "Scheduler subsystem", "2) Couldn't copy monotonic session")
+  }
+  findService.MongoSession = MonotonicMongoSession
+
   for _, req := range sol.Solution {
-    log.Trace("", "DumpToDB", "Writing [%s] with status [%s] to DB", req.ID, req.Status)
+    log.Trace("", "DumpToDB", "Permanent write allocation of [%s] to [%s] to DB", fmt.Sprintf("%x",string(req.ID)), req.CareGiver)
+    err := requestService.AllocateRequest(findService,fmt.Sprintf("%x",string(req.ID)),req.CareGiver)
+    if err != nil {
+     log.CompletedErrorf(err, findService.UserID, "DumpToDB", "AllocateRequest")
+    }
   }
 }
 
@@ -65,7 +80,7 @@ func (sol *SchedulingSolution) Score() int {
 }
 
 func (sol *SchedulingSolution) Copy(s *SchedulingSolution) {
-  newData := make([]IMRequest, len(s.Solution))
+  newData := make([]IMRequest, 0)
   for _, req := range s.Solution {
       newData = append(newData, IMRequest{req.ID, nil, req.Status, req.CareGiver})
   }
@@ -81,6 +96,7 @@ func killRecursion(dumpBest bool) {
 
   if dumpBest {
     log.Trace("", "killRecursion", "Should dump best solution...")
+    board.BestSolution.DumpToDB()
   }
 }
 
@@ -169,9 +185,11 @@ func play(req int) {
           if currentScore > 99 {
             //This solution is too good. You may now stop the backtracking!
             killRecursion(true)
+          } else {
+            board.BestSolution.DumpToDB()
           }
     } else {
-          log.Trace("", "PLAY", "Current solution is not better than existing best solution. CurrentScore[%d]", currentScore)
+          log.Trace("", "PLAY", "Current solution is not better than existing best solution. CurrentScore[%d] <= %d", currentScore, board.BestSolution.Score())
     }
   }
 
