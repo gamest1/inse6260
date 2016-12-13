@@ -15,6 +15,7 @@ import (
   "github.com/goinggo/beego-mgo/services/userService"
   "github.com/goinggo/beego-mgo/utilities/location"
   "github.com/goinggo/beego-mgo/utilities/availability"
+  "github.com/goinggo/beego-mgo/utilities/scheduler"
 )
 
 type RequestsResponse struct {
@@ -181,6 +182,10 @@ func (this *MainController) Register() {
 
     this.Data["Success"] = 1
     log.Trace("POST Registration", "Done! Redirecting to home:", "")
+    if kind == "cg" {
+        log.Trace("POST Registration", "New Care Giver registered!", "Create New Schedule!")
+        scheduler.CreateSchedule()
+    }
 	} else {
     log.Trace("", "Register GET", "I'm here!!!")
   }
@@ -312,6 +317,8 @@ func (this *MainController) Profile() {
     this.Data["Success"] = 1
     m["availability"] = *newAvailability
     log.Trace("POST Profile", "Done!", "")
+    log.Trace("POST Profile", "Care Giver availability updated!", "Create New Schedule!")
+    scheduler.CreateSchedule()
 	} else {
     log.Trace("", "GET Profile", "")
   }
@@ -430,6 +437,8 @@ func (this *MainController) Request() {
 
     this.Data["Success"] = 1
     log.Trace("POST Request", "Done! Redirecting to home:", "")
+    log.Trace("POST Request", "New Service Request!", "Create New Schedule!")
+    scheduler.CreateSchedule()
 	} else {
     log.Trace("", "Request GET", "")
   }
@@ -560,4 +569,8 @@ func (this *MainController) updateRequest(status string) {
 
 //	this.Data["json"] = &interface{}{}
 	this.ServeJSON()
+  if status == "canceled" {
+    //Canceling a request trigger a new schedule creation:
+    scheduler.CreateSchedule()
+  }  
 }

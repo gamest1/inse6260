@@ -4,6 +4,10 @@
 package userService
 
 import (
+	"math"
+	"reflect"
+
+	"github.com/goinggo/beego-mgo/models/requestModel"
 	"github.com/goinggo/beego-mgo/models/userModel"
 	"github.com/goinggo/beego-mgo/services"
 	"github.com/goinggo/beego-mgo/utilities/helper"
@@ -264,4 +268,47 @@ func FindCareGiversForLanguageAndSkill(service *services.Service, language strin
 
 	log.Completedf(service.UserID, "FindCareGiversForLanguageAndSkill", "care givers that speak %s with skill %s %+v", language, skill, users)
 	return users, nil
+}
+
+// FetchPossibleCareGiversForRequest retrieves all care givers that could address certain request upto availability
+func FetchPossibleCareGiversForRequest(service *services.Service, request requestModel.Request) ([]string, error) {
+	log.Startedf(service.UserID, "FetchPossibleCareGiversForRequest", "request: %+v", request)
+
+	var users []userModel.User
+	f := func(collection *mgo.Collection) error {
+		queryMap := bson.M{"profile.type": "cg", "profile.gender": request.Requirements.Gender, "profile.skills" : request.Requirements.Skill, "profile.languages" : bson.M{"$in": request.Requirements.Languages}}
+
+		log.Trace(service.UserID, "FetchPossibleCareGiversForRequest", "Query : db.%s.find(%s)", Config.Collection, mongo.ToString(queryMap))
+		return collection.Find(queryMap).Select(bson.M{"email": 1, "profile": 1, "_id": 0}).All(&users)
+	}
+
+	if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
+		log.CompletedError(err, service.UserID, "FetchPossibleCareGiversForRequest")
+		return nil, err
+	}
+
+	log.Trace(service.UserID, "FetchPossibleCareGiversForRequest", "successfully found %d potential care givers for a request. Matching availability:", len(users))
+	finalUsers := make([]string, 0)
+	if len(users) > 0 {
+		for _, cg := range users {
+
+			//Do proper time calculation to see if the availability of this person can match the request:
+			requestHour := request.StartTime.Hour()
+			acc := float64(0)
+			for i := 0 ; i < request.Duration ; i++ {
+	 			acc += math.Pow(2, float64(requestHour + i))
+			}
+			thisInt := int(acc)
+
+			requestWeekday := request.StartTime.Weekday().String()
+			r := reflect.ValueOf(cg.Profile.Availability)
+    	f := reflect.Indirect(r).FieldByName(requestWeekday)
+			if int(f.Int()) & thisInt == thisInt {
+            finalUsers = append(finalUsers, cg.Email)
+			}
+		}
+	}
+
+	log.Completedf(service.UserID, "FetchPossibleCareGiversForRequest", "care givers that could fullfill [%+v]: %+v", request, finalUsers)
+	return finalUsers, nil
 }

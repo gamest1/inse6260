@@ -158,3 +158,27 @@ func FetchRequest(service *services.Service, ID bson.ObjectId) (*requestModel.Re
 	log.Completedf(service.UserID, "FetchRequest", "Request found: %+v", request)
 	return request, nil
 }
+
+// To be used by the Scheduler:
+// FetchCurrentSchedule retrieves all the requests with pending or allocated status:
+func FetchCurrentSchedule(service *services.Service) ([]requestModel.Request, error) {
+	log.Startedf(service.UserID, "FetchCurrentSchedule", "")
+
+	var requests []requestModel.Request
+	f := func(collection *mgo.Collection) error {
+		queryMap := bson.M{"$or": []bson.M{bson.M{"status": "pending"}, bson.M{"status": "allocated"}}}
+
+		log.Trace(service.UserID, "FetchCurrentSchedule", "MGO : db.%s.find(%s)", Config.Collection, mongo.ToString(queryMap))
+		return collection.Find(queryMap).All(&requests)
+	}
+
+	if err := service.DBAction(Config.Database, Config.Collection, f); err != nil {
+		if err != mgo.ErrNotFound {
+			log.CompletedError(err, service.UserID, "FetchCurrentSchedule")
+			return nil, err
+		}
+	}
+
+	log.Completedf(service.UserID, "FetchCurrentSchedule", "Current schedule fetch completed %+v", requests)
+	return requests, nil
+}
