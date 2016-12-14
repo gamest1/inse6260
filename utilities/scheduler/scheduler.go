@@ -2,9 +2,10 @@ package scheduler
 
 import (
   "fmt"
+  "time"
+  "math"
 
   log "github.com/goinggo/tracelog"
-  "github.com/goinggo/beego-mgo/utilities/availability"
 
   //Database access:
   "github.com/goinggo/beego-mgo/services"
@@ -15,9 +16,13 @@ import (
 )
 
 type (
-  IMCareGiver struct {
-    ID         bson.ObjectId
-    availability availability.Availability
+  Appointment struct {
+    StartTime   time.Time
+	  Duration    int
+  }
+
+  IMBookings struct {
+    Allocations []Appointment
   }
 
   IMRequest struct {
@@ -25,6 +30,7 @@ type (
     CareGivers []string //Care Givers identified by email!
     Status      string
     CareGiver   string
+    TimeInfo    Appointment
   }
 
   SchedulingSolution struct {
@@ -32,15 +38,78 @@ type (
   }
 
   SolutionBoard struct {
-    AllCareGivers map[string]bool //Merge of all Care Givers for all IMRequests! bool true means that Care Giver is available.
+    AllCareGivers map[string]IMBookings
     CurrentSolution *SchedulingSolution
     BestSolution *SchedulingSolution
+    IsKilled bool
   }
 
 )
 
-func (req *IMRequest) CanPlay() bool {
-	return len(req.CareGivers) > 0
+func (a Appointment) Equals(b Appointment) bool {
+  if a.StartTime == b.StartTime && a.Duration == b.Duration {
+    return true
+  }
+  return false
+}
+
+func (a Appointment) ConflictsWith(b Appointment) bool {
+  if a.StartTime.Day()   == b.StartTime.Day()   &&
+  	 a.StartTime.Month() == b.StartTime.Month() &&
+  	 a.StartTime.Year()  == b.StartTime.Year()  {
+
+    //They are on the same day! There may be a conflict:
+    x1 := float64(a.StartTime.Hour())
+    x2 := x1 + float64(a.Duration)
+
+    y1 := float64(b.StartTime.Hour())
+    y2 := y1 + float64(b.Duration)
+    //We just need to find if the intervals [x1,x2] and [y1,y2] intersect!
+    return math.Max(x1,y1) < math.Min(x2,y2)
+  }
+
+  return false
+}
+
+func (b *SolutionBoard) CanPlay(careGiver string, req IMRequest) bool {
+  if b.IsKilled {
+    return false
+  }
+  for _, app := range b.AllCareGivers[careGiver].Allocations {
+      if app.ConflictsWith(req.TimeInfo) {
+        return false
+      }
+  }
+	return true
+}
+
+func (b *SolutionBoard) Assign(careGiver string, req IMRequest, idx int) {
+  log.Trace("", "board.Assign", "Allocating request [%x] to %s", string(req.ID), careGiver)
+
+  book := b.AllCareGivers[careGiver]
+  book.Allocations = append(book.Allocations, req.TimeInfo)
+  b.AllCareGivers[careGiver] = book
+
+  b.CurrentSolution.Solution[idx].Status = "allocated"
+  b.CurrentSolution.Solution[idx].CareGiver = careGiver
+}
+
+func (b *SolutionBoard) Unassign(careGiver string, req IMRequest, idx int) bool {
+  for i, app := range b.AllCareGivers[careGiver].Allocations {
+    if app.Equals(req.TimeInfo) {
+      log.Trace("", "board.Unassign", "Unassigning request [%x] from %s", string(req.ID), careGiver)
+
+      book := b.AllCareGivers[careGiver]
+      book.Allocations = append(book.Allocations[:i], book.Allocations[i+1:]...)
+      b.AllCareGivers[careGiver] = book
+
+      b.CurrentSolution.Solution[idx].Status = "pending"
+      b.CurrentSolution.Solution[idx].CareGiver = ""
+      return true
+    }
+  }
+  log.Trace("", "board.Unassign", "Unable to unassign request [%x] from %s!! Potential error emerging...", string(req.ID), careGiver)
+  return false
 }
 
 func (req *IMRequest) Size() int {
@@ -82,7 +151,7 @@ func (sol *SchedulingSolution) Score() int {
 func (sol *SchedulingSolution) Copy(s *SchedulingSolution) {
   newData := make([]IMRequest, 0)
   for _, req := range s.Solution {
-      newData = append(newData, IMRequest{req.ID, nil, req.Status, req.CareGiver})
+      newData = append(newData, IMRequest{req.ID, nil, req.Status, req.CareGiver, req.TimeInfo})
   }
   sol.Solution = newData
 }
@@ -90,10 +159,7 @@ func (sol *SchedulingSolution) Copy(s *SchedulingSolution) {
 var board *SolutionBoard
 
 func killRecursion(dumpBest bool) {
-  for key, _ := range board.AllCareGivers {
-    board.AllCareGivers[key] = false
-  }
-
+  board.IsKilled = true
   if dumpBest {
     log.Trace("", "killRecursion", "Should dump best solution...")
     board.BestSolution.DumpToDB()
@@ -123,7 +189,7 @@ func CreateSchedule() {
     log.CompletedErrorf(err, findService.UserID, "CreateSchedule", "FetchRequest")
   }
 
-  m := make(map[string]bool)
+  m := make(map[string]IMBookings)
   currentSolution := &SchedulingSolution{}
   bestSolution    := &SchedulingSolution{}
   for _, req := range allRequests {
@@ -134,13 +200,13 @@ func CreateSchedule() {
       log.CompletedErrorf(err, findService.UserID, "CreateSchedule", "FetchPossibleCareGiversForRequest")
     }
     for _, cg := range allCareGivers {
-      m[cg] = true
+      m[cg] = IMBookings{make([]Appointment, 0)}
     }
-    currentSolution.Solution = append(currentSolution.Solution, IMRequest{req.ID, allCareGivers, "pending", ""})
-    bestSolution.Solution    = append(   bestSolution.Solution, IMRequest{req.ID, nil, req.Status, req.CareGiver})
+    currentSolution.Solution = append(currentSolution.Solution, IMRequest{req.ID, allCareGivers, "pending", "", Appointment{req.StartTime, req.Duration}})
+    bestSolution.Solution    = append(   bestSolution.Solution, IMRequest{req.ID, nil, req.Status, req.CareGiver, Appointment{req.StartTime, req.Duration}})
   }
 
-  board = &SolutionBoard{m, currentSolution, bestSolution}
+  board = &SolutionBoard{m, currentSolution, bestSolution, false}
 
   //Start Backtracking on currentSolution to find better solutions!
   log.Trace("", "CreateSchedule", "Starting recursion for depth[%d] with bestSolutionScore[%d] vs 0=%d?", len(board.CurrentSolution.Solution), bestSolution.Score(), currentSolution.Score())
@@ -155,22 +221,12 @@ func play(req int) {
     if lim > 0 {
       for cgIdx := 0; cgIdx < lim ; cgIdx++ {
           currentMove := board.CurrentSolution.Solution[req].CareGivers[cgIdx]
-          //If you can play this move, play it:
-          if board.AllCareGivers[currentMove] {
-
-            //log.Trace("", "PLAY", "Allocating request [%x] to %s", string(board.CurrentSolution.Solution[req].ID), board.CurrentSolution.Solution[req].CareGivers[cgIdx])
-            board.AllCareGivers[currentMove] = false
-            board.CurrentSolution.Solution[req].Status = "allocated"
-            board.CurrentSolution.Solution[req].CareGiver = board.CurrentSolution.Solution[req].CareGivers[cgIdx]
-
-            play(req + 1)
-
-            //Undo:
-            board.AllCareGivers[currentMove] = true
-            board.CurrentSolution.Solution[req].Status = "pending"
-            board.CurrentSolution.Solution[req].CareGiver = ""
+          if board.CanPlay(currentMove, board.CurrentSolution.Solution[req]) {
+              board.Assign(currentMove, board.CurrentSolution.Solution[req], req)
+              play(req + 1)
+              board.Unassign(currentMove, board.CurrentSolution.Solution[req], req)
           } else {
-            play(req + 1)
+              play(req + 1)
           }
       }
     } else {
