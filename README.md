@@ -1,4 +1,4 @@
-# INSE 6260 Spectrix Health Care Schedulind System
+# INSE 6260 Spectrix Health Care Scheduling System
 
 This project was developed using the *Beego Mgo Example* project as a base using the following technologies:
 
@@ -8,17 +8,20 @@ This project was developed using the *Beego Mgo Example* project as a base using
 -React + Socket.IO
 
 -- Run the web service
+```bash
 cd $GOPATH/src/github.com/goinggo/beego-mgo/zscripts
 ./runlocal.sh
+```
 
 -- Test Web App
 Run the home page!
 http://localhost:9003
 
 -- Run the test cases
+```bash
 cd $GOPATH/src/github.com/goinggo/beego-mgo
 ./testconvey.sh
-
+```
 
 
 ## Beego Mgo Example
