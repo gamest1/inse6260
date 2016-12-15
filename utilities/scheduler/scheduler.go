@@ -156,6 +156,10 @@ func (sol *SchedulingSolution) Copy(s *SchedulingSolution) {
   sol.Solution = newData
 }
 
+func (sol *SchedulingSolution) Size() int {
+  return len(sol.Solution)
+}
+
 var board *SolutionBoard
 
 func killRecursion(dumpBest bool) {
