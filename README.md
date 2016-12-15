@@ -1,4 +1,27 @@
-# Beego Mgo Example
+# INSE 6260 Spectrix Health Care Schedulind System
+
+This project was developed using the *Beego Mgo Example* project as a base using the following technologies:
+
+-GoLang
+-MongoDB
+-GoConvey (Testing Framework)
+-React + Socket.IO
+
+-- Run the web service
+cd $GOPATH/src/github.com/goinggo/beego-mgo/zscripts
+./runlocal.sh
+
+-- Test Web App
+Run the home page!
+http://localhost:9003
+
+-- Run the test cases
+cd $GOPATH/src/github.com/goinggo/beego-mgo
+./testconvey.sh
+
+
+
+## Beego Mgo Example
 
 Copyright 2013 Ardan Studios. All rights reserved.  
 Use of this source code is governed by a BSD-style license that can be found in the LICENSE handle.
@@ -22,15 +45,15 @@ bill@ardanstudios.com
 
 	-- Get, build and install the code
 	go get github.com/goinggo/beego-mgo
-	
+
 	-- Run the web service
 	cd $GOPATH/src/github.com/goinggo/beego-mgo/zscripts
 	./runbuild.sh
-	
+
 	-- Run the tests
 	cd $GOPATH/src/github.com/goinggo/beego-mgo/zscripts
 	./runtests.sh
-	
+
 	-- Test Web Service API's
 	Run the home page and go through the tabs
 	http://localhost:9003
