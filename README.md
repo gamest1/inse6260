@@ -2,10 +2,10 @@
 
 This project was developed using the *Beego Mgo Example* project as a base using the following technologies:
 
--GoLang
--MongoDB
--GoConvey (Testing Framework)
--React + Socket.IO
+* GoLang
+* MongoDB
+* GoConvey (Testing Framework)
+* React + Socket.IO
 
 -- Run the web service
 ```bash
@@ -15,7 +15,7 @@ cd $GOPATH/src/github.com/goinggo/beego-mgo/zscripts
 
 -- Test Web App
 Run the home page!
-http://localhost:9003
+	http://localhost:9003
 
 -- Run the test cases
 ```bash
