@@ -41,6 +41,7 @@ func (this *MainController) addSystemLanguagesAndSkills() {
 func (this *MainController) Register() {
 	this.activeContent("user/register", true)
   this.addSystemLanguagesAndSkills();
+  this.Data["Success"] = 0
   this.Data["Days"] = []string{"monday","tuesday","wednesday","thursday","friday","saturday","sunday"}
 	if this.Ctx.Input.Method() == "POST" {
     //This could be put into a struct, perhaps?
@@ -572,5 +573,5 @@ func (this *MainController) updateRequest(status string) {
   if status == "canceled" {
     //Canceling a request trigger a new schedule creation:
     scheduler.CreateSchedule()
-  }  
+  }
 }
