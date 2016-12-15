@@ -17,6 +17,7 @@ var RequestList = React.createClass({
             <th>Status</th>
             <th>Location</th>
             <th>Details</th>
+            <th>Care Giver</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -112,6 +113,7 @@ var Request = React.createClass({
         <td>Request for a {this.props.request.Requirements.Gender} {this.props.request.Requirements.skill} able to speak:<br/>
         {requestLanguages}
         </td>
+        <td>{this.props.request.careGiver}</td>
         <td>{actions}</td>
       </tr>
     );
@@ -171,6 +173,7 @@ var RequestBox = React.createClass({
           var all = [];
           if (data.Requests) {
             for (let o of data.Requests) {
+              //console.log(JSON.stringify(o));
               all.push(new ServiceRequest(o,data.UserType));
             }
             console.log("Got " + all.length + " results");

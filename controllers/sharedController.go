@@ -115,7 +115,7 @@ func (this *MainController) Post() {
         if err != nil {
           errormap := []string{err.Error()}
           log.CompletedErrorf(err, email, "MainController.Post", "Login failed with error map: %+v", errormap)
-          this.Data["Errors"] = errormap
+          this.Data["Errors"] = append(errormap,"Wrong email-password combination. Please try again!")
           return
         }
 

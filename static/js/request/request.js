@@ -143,6 +143,10 @@ var ServiceRequest = function ServiceRequest(apiObject,userType) {
             }
             this["Requirements"] = newReqs;
             break;
+          case "care_giver":
+              //Here you could change empty strings for N/A or things like that.
+              this["careGiver"] = apiObject[property];
+              break;
           default:
             this[property] = apiObject[property];
         }
