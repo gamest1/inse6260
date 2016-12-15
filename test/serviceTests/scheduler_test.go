@@ -52,7 +52,7 @@ func Test_IMRequests(t *testing.T) {
 	cSolution := []IMRequest{req1,req2,req3}
 	TT := &SchedulingSolution{cSolution}
 
-	board := &SolutionBoard{m, TT, SS, false}
+	aBoard := &SolutionBoard{m, TT, SS, false}
 
 	Convey("Subject: Test In-Memory Requests", t, func() {
 		Convey("Score function should return 33 when only one of three requests are allocated", func() {
@@ -66,21 +66,21 @@ func Test_IMRequests(t *testing.T) {
 	})
 	Convey("Subject: Test Solution Board", t, func() {
 		Convey("Assign should improve current solution score", func() {
-			board.Assign("cg1@test.com",req1,0)
-			So(board.CurrentSolution.Score(), ShouldBeGreaterThan, 0)
+			aBoard.Assign("cg1@test.com",req1,0)
+			So(aBoard.CurrentSolution.Score(), ShouldBeGreaterThan, 0)
 		})
 		Convey("Unassign should return the score back to what it was", func() {
-			board.Unassign("cg1@test.com",req1,0)
-			So(board.CurrentSolution.Score(), ShouldEqual, 0)
+			aBoard.Unassign("cg1@test.com",req1,0)
+			So(aBoard.CurrentSolution.Score(), ShouldEqual, 0)
 		})
 		Convey("CanPlay should be false if a conflicting request comes in", func() {
-			board.Assign("cg1@test.com",req2,0)
-			board.CanPlay("cg1@test.com",req3)
-			So(board.CanPlay("cg1@test.com",req3), ShouldBeFalse)
+			aBoard.Assign("cg1@test.com",req2,0)
+			aBoard.CanPlay("cg1@test.com",req3)
+			So(aBoard.CanPlay("cg1@test.com",req3), ShouldBeFalse)
 		})
 		Convey("CanPlay should be ok if a non-conflicting request comes in", func() {
-			board.CanPlay("cg1@test.com",req3)
-			So(board.CanPlay("cg2@test.com",req3), ShouldBeTrue)
+			aBoard.CanPlay("cg1@test.com",req3)
+			So(aBoard.CanPlay("cg2@test.com",req3), ShouldBeTrue)
 		})
 	})
 }
