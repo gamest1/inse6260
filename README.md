@@ -7,7 +7,7 @@ This project was developed using the *Beego Mgo Example* project as a base using
 * GoConvey (Testing Framework)
 * React + Socket.IO
 
-To run Spectrix on your local machine, you must install Bazaar, mongo, and golang first. Make sure you have a working GoLang system on your computer: $GOPATH must be set and make sure you have reading access to the project's code repository located [https://github.com/gamest1/inse6260.git](https://github.com/gamest1/inse6260.git), if you don't have access to the repository, unzip the project's source file inside the $GOPATH/src/ folder and fix all dependancies problem doing *go get* everytime a package dependancy is not found.
+To run Spectrix on your local machine, you must install Bazaar, mongo, and golang first. Make sure you have a working GoLang system on your computer: $GOPATH must be set and make sure you have reading access to the project's code repository located [https://github.com/gamest1/inse6260.git](https://github.com/gamest1/inse6260.git)
 
 Then:
 
@@ -15,7 +15,9 @@ Then:
 go get github.com/gamest1/inse6260/...
 ```
 
-(The three dots at the end guarantee that you will get all project dependancies) For more instructions about setting up your GoLang working environment, visit: [https://golang.org/doc/install](https://golang.org/doc/install)
+(The three dots at the end guarantee that you will get all project dependancies) For more instructions about setting up your GoLang working environment, visit: [https://golang.org/doc/install](https://golang.org/doc/install. If you don't have access to the repository, unzip the project's source file inside the $GOPATH/src/ folder and fix all dependancies problem doing *go get* everytime a package dependancy is not found.
+
+
 
 Create a directory:
 
