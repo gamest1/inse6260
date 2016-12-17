@@ -7,6 +7,46 @@ This project was developed using the *Beego Mgo Example* project as a base using
 * GoConvey (Testing Framework)
 * React + Socket.IO
 
+To run Spectrix on your local machine, you must install Bazaar, mongo, and golang first. Create a directory:
+
+```bash
+mkdir -p /data/
+```
+
+where all the database data will be stored.
+
+Now, you must run two mongo deamons in a primary secondary replica set configuration, and load some data onto a database called inse6260. To setup the primary/secondary configuration, you may use the provided .conf files in the /dbup folder using:
+
+```bash
+mongod -f [your path]/dbup/mongod1.conf
+mongod -f [your path]/dbup/mongod2.conf
+```
+
+Additionally, use:
+
+```bash
+ mongorestore [your path]/dbup/
+```
+
+To load pre-existing data to your database  (you may need to delete the .conf files from [your path]/dbup/ for the previous command to work).
+
+Finally, a user with readWrite permissions must be created to access the inse6260 database using the following credentials: username: guest, password: welcome
+
+Open a mongo shell using:
+
+```bash
+ mongo
+```
+
+and use the following command for this purpose:
+
+```bash
+db.createUser( { user: "guest", pwd: "welcome", roles: [ { role: "readWrite", db: "inse6260" } ] } )
+```
+
+Once your database system is up and running:
+
+
 -- Run the web service
 ```bash
 cd $GOPATH/src/github.com/goinggo/beego-mgo/zscripts
